@@ -44,7 +44,6 @@ function onLoadMore() {
     markups();
 }
 
-
 async function getData() {
     try {
         const response = await axios.get("https://pixabay.com/api/", {
@@ -83,12 +82,11 @@ function markups() {
 function cliarGallery() {
     refs.gallery.innerHTML = "";
 }
-function cliarForm() {
-    refs.form.reset();
-}
+
 function addLoadBtn() {
     refs.loadBtn.style.display = "block";
 }
+
 function removeLoadBtn() {
     refs.loadBtn.style.display = "none";
 }
