@@ -23,88 +23,72 @@ const  options = {
     per_page: 40,
     page: 1
 }
-
+removeLoadBtn()
 
 function onFormSubmit (event) {
     event.preventDefault();
-
+    removeLoadBtn()
     cliarGallery();
     inputValue = event.currentTarget.elements.searchQuery.value;
-    // options.per_page = 10;
     options.q = inputValue;
-    
-
-    getData();
-    refs.loadBtn.classList.remove("hidden");
-    // cliarForm()
+    if (inputValue === "") {
+        Notiflix.Notify.info("Please enter a search query.");
+        return;
+    }
+    markups();
 }
 
 function onLoadMore() {
-    refs.loadBtn.classList.add("hidden");
-    if (!options.q) {
-        return;
-    }
-    if (500 <= options.per_page) {
-        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
-        refs.loadBtn.classList.add("hidden");
-        return;
-    }
-
+    removeLoadBtn();
     options.page += 1;
-    getData();
-    
-    console.log(options.page);
-    refs.loadBtn.classList.remove("hidden");
+    markups();
 }
 
-function getData() {
-    axios.get("https://pixabay.com/api/", {
-    params: options
-})
-    .then(response => {
-        if (response.data.hits.length === 0) {
+
+async function getData() {
+    try {
+        const response = await axios.get("https://pixabay.com/api/", {
+            params: options
+        });
+        const photos = response.data.hits;
+        if (photos.length === 0) {
+            removeLoadBtn();
             Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-            // cliarForm();
             return;
         }
-        const photos = response.data.hits
-        // console.log(photos);
+        if (response.data.totalHits <= (options.per_page * options.page)) {
+            Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+            removeLoadBtn();
+            return;
+        }
         return photos;
-    })
-    .catch(error => {
+    } catch (error) {
         console.log(error);
-        return;
-    }).then(photos => {
+    }
+}
+
+function markups() {
+    getData().then(photos => {
+        if (!photos) {
+            return;
+        }
         photos.map(photo => {
             const markup = imgCard(photo);
-           
             refs.gallery.insertAdjacentHTML("beforeend", markup);
-
-            console.log(photo)
-        })
-    
-    
+            addLoadBtn();
+        });
     });
 }
-// function markup() {
-//     getData()
-//     .then(photos => {
-//         photos.map(photo => {
-//             const markup = imgCard(photo);
-           
-//             refs.gallery.insertAdjacentHTML("beforeend", markup);
-
-//             // console.log(photo)
-//         })
-    
-//     });
-// }
-
-
 
 function cliarGallery() {
     refs.gallery.innerHTML = "";
 }
 function cliarForm() {
     refs.form.reset();
+}
+function addLoadBtn() {
+    refs.loadBtn.style.display = "block";
+}
+function removeLoadBtn() {
+    refs.loadBtn.style.display = "none";
 }
